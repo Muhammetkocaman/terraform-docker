@@ -5,46 +5,28 @@ terraform {
       version = "~> 5.0"
     }
   }
+  backend "s3" {
+    bucket = "muhammet-terraform-state-storage"
+    key = "dev/docker-project.tfstate"
+    region = "eu-central-1"
+    dynamodb_table = "terraform-state-lock-db"
+    encrypt = true 
+
+  }
 }
 
 provider "aws" {
   region = var.region
 }
 
-resource "aws_security_group" "docker_sg" {
-  name        = "docker-sg"
-  description = "Allow SSH and HTTP"
-
-  ingress {
-    description = "SSH"
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  ingress {
-    description = "HTTP"
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  tags = {
-    Name = "docker-security-group"
-  }
-}
 
 
 module "s3_bucket" {
-source = "./modules/s3"
-bucket_name = var.bucket_name
+  source      = "./modules/s3"
+  bucket_name = var.bucket_name
+}
+
+module "aws_security_group" {
+  source = "./modules/security_group"
+
 }
